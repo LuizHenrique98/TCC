@@ -1,36 +1,28 @@
 import React, {useState, useEffect} from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  TouchableWithoutFeedback,
   Keyboard,
+  TextInput,
+  SafeAreaView,
   ToastAndroid,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 
 import {useAsyncStorage} from '@react-native-async-storage/async-storage';
-import uuid from 'react-native-uuid';
+
+import ModalComponent from '../../components/Modal';
 
 export default function CadastroCultivo(param) {
-  // const [data, setData] = useState([]);
   const [cultivo, setCultivo] = useState('');
   const [altura, setAltura] = useState(0);
   const [temperatura, setTemperatura] = useState(0);
   const [umidade, setUmidade] = useState(0);
 
   const {getItem, setItem} = useAsyncStorage('@savePulverizador:cultivo');
-
-  /* useEffect(() => {
-    handleData();
-  }, []);
-
-  async function handleData() {
-    const response = await AsyncStorage.getItem('@savePulverizador:cultivo');
-    setData(data);
-  }*/
 
   async function handleSalvar() {
     if (
@@ -39,14 +31,16 @@ export default function CadastroCultivo(param) {
       temperatura <= 0 ||
       umidade <= 0
     ) {
-      ToastAndroid.showWithGravity(
-        'Por favor preencha todos os campos.',
-        ToastAndroid.SHORT,
-        ToastAndroid.TOP,
-      );
+      Alert.alert('Atenção!', 'Todos os campos devem ser preenchidos');
     } else {
       try {
-        const id = uuid.v4;
+        const response = await getItem();
+
+        const responseData = response ? JSON.parse(response) : [];
+
+        const lastId = responseData.length - 1;
+
+        const id = lastId + 1;
 
         const newData = {
           id,
@@ -56,27 +50,18 @@ export default function CadastroCultivo(param) {
           umidade,
         };
 
-        const response = await getItem();
-
-        const responseData = response ? JSON.parse(response) : [];
-
         const data = [...responseData, newData];
 
         await setItem(JSON.stringify(data));
-        console.log(data);
 
-        ToastAndroid.showWithGravity(
-          'Dados salvos com sucesso!',
-          ToastAndroid.SHORT,
-          ToastAndroid.TOP,
-        );
+        Alert.alert('Mensagem', 'Dados gravados com sucesso!');
+
+        setCultivo('');
+        setAltura(0);
+        setTemperatura(0);
+        setUmidade(0);
       } catch (error) {
-        ToastAndroid.showWithGravity(
-          'Ops....Não foi possível cadastrar. Tente novamente',
-          ToastAndroid.SHORT,
-          ToastAndroid.TOP,
-        );
-        console.log(error);
+        Alert.alert('Ops...', 'Não foi possível cadastrar. Tente novamente');
       }
     }
   }
@@ -91,7 +76,6 @@ export default function CadastroCultivo(param) {
             onChangeText={text => setCultivo(text)}
             value={cultivo}
           />
-
           <Text style={styles.texto}>Altura ideal</Text>
           <TextInput
             style={styles.textInput}
@@ -99,7 +83,6 @@ export default function CadastroCultivo(param) {
             value={altura}
             keyboardType="numeric"
           />
-
           <Text style={styles.texto}>Temperatura máxima recomendada</Text>
           <TextInput
             style={styles.textInput}
@@ -107,7 +90,6 @@ export default function CadastroCultivo(param) {
             value={temperatura}
             keyboardType="numeric"
           />
-
           <Text style={styles.texto}>Umidade máxima recomendada</Text>
           <TextInput
             style={styles.textInput}
@@ -115,7 +97,6 @@ export default function CadastroCultivo(param) {
             value={umidade}
             keyboardType="numeric"
           />
-
           <TouchableOpacity style={styles.button} onPress={handleSalvar}>
             <Text style={styles.textoBotao}> Salvar</Text>
           </TouchableOpacity>

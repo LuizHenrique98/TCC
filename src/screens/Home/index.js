@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   SafeAreaView,
   View,
@@ -8,51 +8,59 @@ import {
 } from 'react-native';
 
 import {Picker} from '@react-native-picker/picker';
-import uuid from 'react-native-uuid';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
+import AsyncStorate from '@react-native-async-storage/async-storage';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 export default function Home() {
-  const [cultivo, setCultivo] = useState('');
+  const [listaCultivos, setListaCultivos] = useState([]);
+  const [cultivoSelecionado, setCultivoSelecionado] = useState(0);
   const [intervalo, setInvervalo] = useState(0);
   const [distancia, setDistancia] = useState(0);
+  const [umidade, setUmidade] = useState(0);
+  const [temperatura, setTemperatura] = useState(0);
 
-  const listaCultivo = [
-    {
-      id: '1',
-      nome: 'Soja',
-    },
+  const [ladoEsquerdo, setLadoEsquerdo] = useState(0);
+  const [ladoDireito, setLadoDireito] = useState(0);
+  const [temperaturaConst, setTemperaturaConst] = useState(0);
+  const [umidadeConst, setUmidadeConst] = useState(0);
 
-    {
-      id: '2',
-      nome: 'melancia',
-    },
-  ];
+  var valoresAleatorios;
 
-  async function handleNew() {
-    const id = uuid.v4;
+  //  const {getItem, setItem} = useAsyncStorage('@savePulverizador:cultivo');
 
-    const newData = {
-      id,
-      cultivo,
-      intervalo,
-    };
+  useFocusEffect(
+    useCallback(() => {
+      handleData();
+    }, []),
+  );
 
-    const response = await AsyncStorage.removeItem('@savePulverizador:cultivo');
+  /*useEffect(() => {
+    handleData();
+  }, []);*/
+
+  async function handleData() {
+    const response = await AsyncStorate.getItem('@savePulverizador:cultivo');
+
     const responseData = response ? JSON.parse(response) : [];
 
-    const data = [...responseData, newData];
+    setListaCultivos(responseData);
+  }
 
-    await AsyncStorage.setItem(
-      '@savePulverizador:cultivo',
-      JSON.stringify(data),
-    );
+  function handleAtualizaValores(id) {}
 
-    console.log(data);
-    Toast.show({
-      type: 'sucess',
-      text1: 'Dados salvos com sucesso!',
-    });
+  function handleValores() {
+    valoresAleatorios = setInterval(() => {
+      console.log('passou 3 segundos');
+      setLadoEsquerdo(Math.floor(Math.random() * 70));
+      setLadoDireito(Math.floor(Math.random() * 70));
+      setTemperaturaConst(Math.floor(Math.random() * 100));
+      setUmidadeConst(Math.floor(Math.random() * 100));
+    }, 3000);
+  }
+
+  function handleParar() {
+    console.log('pausando loop');
+    clearInterval(valoresAleatorios);
   }
 
   return (
@@ -61,13 +69,20 @@ export default function Home() {
         <View style={styles.boxCultivo}>
           <Text style={styles.texto}>Cultivo</Text>
           <Picker
-            selectedValue={cultivo}
-            onValueChange={(itemValue, itemIndex) => setCultivo(itemValue)}
+            selectedValue={cultivoSelecionado}
+            onValueChange={(itemValue, itemIndex) => {
+              console.log(listaCultivos);
+              console.log('indice cultivo selecionado: ' + itemValue);
+              setCultivoSelecionado(itemValue);
+              setDistancia(listaCultivos[itemValue].altura);
+              setUmidade(listaCultivos[itemValue].umidade);
+              setTemperatura(listaCultivos[itemValue].temperatura);
+            }}
             style={styles.picker}>
-            {listaCultivo.map(index => {
+            {listaCultivos.map(index => {
               return (
                 <Picker.Item
-                  label={index.nome}
+                  label={index.cultivo}
                   value={index.id}
                   key={index.id}
                   style={{fontSize: 20}}
@@ -77,13 +92,13 @@ export default function Home() {
           </Picker>
         </View>
         <View style={styles.boxCultivo}>
-          <Text style={styles.texto}>Coleta de dados em minutos:</Text>
+          <Text style={styles.texto}>Coleta de dados em segundos:</Text>
           <Picker
             selectedValue={intervalo}
             onValueChange={(itemValue, itemIndex) => setInvervalo(itemValue)}
             style={styles.picker}>
-            <Picker.Item label="0" value={0} key={0} style={{fontSize: 20}} />
-            <Picker.Item label="1" value={1} key={1} style={{fontSize: 20}} />
+            <Picker.Item label="0" value={0} key={0} />
+            <Picker.Item label="1" value={1} key={1} />
             <Picker.Item label="2" value={2} key={2} />
             <Picker.Item label="3" value={3} key={3} />
             <Picker.Item label="4" value={4} key={4} />
@@ -100,24 +115,34 @@ export default function Home() {
 
       <View style={styles.boxContainer}>
         <View style={styles.boxCultivo}>
-          <Text style={styles.texto}> Esquerdo</Text>
-          <Text style={styles.texto}> Direito</Text>
+          <Text style={styles.texto}> Esquerdo {distancia} </Text>
+          <Text style={styles.texto}> Direito {distancia} </Text>
         </View>
 
         <View style={styles.boxCultivo}>
-          <Text style={styles.texto}>0</Text>
-          <Text style={styles.texto}>0</Text>
+          <Text style={styles.texto}> {ladoEsquerdo} </Text>
+          <Text style={styles.texto}>{ladoDireito} </Text>
         </View>
       </View>
 
-      <View style={{marginTop: 50}}>
-        <Text>Temperatura</Text>
-        <Text>Umidade do Ar</Text>
+      <View style={[styles.boxContainer, {height: 170}]}>
+        <View>
+          <Text style={styles.texto}>Temperatura ideal: {temperatura} </Text>
+          <Text style={styles.texto}> {temperaturaConst} </Text>
+          <Text style={styles.texto}>Umidade do Ar ideal: {umidade} </Text>
+          <Text style={styles.texto}> {umidadeConst} </Text>
+        </View>
       </View>
 
-      <TouchableOpacity onPress={handleNew}>
-        <Text>Ok</Text>
-      </TouchableOpacity>
+      <View style={{flexDirection: 'row', width: '80%'}}>
+        <TouchableOpacity style={styles.button} onPress={handleValores}>
+          <Text style={styles.textButton}>Iniciar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleParar}>
+          <Text style={styles.textButton}>Parar</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -127,7 +152,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   boxCabecalho: {
-    backgroundColor: '#4F4F4F',
+    backgroundColor: '#C0C0C0',
     borderRadius: 10,
     margin: '5%',
     alignItems: 'center',
@@ -140,20 +165,37 @@ const styles = StyleSheet.create({
     fontSize: 20,
     padding: 10,
     width: '60%',
-    color: 'white',
+    color: 'black',
+    fontWeight: 'bold',
   },
   picker: {
     width: '40%',
-    color: 'white',
+    color: 'black',
+    fontWeight: 'bold',
   },
   boxSensores: {
     flexDirection: 'row',
   },
   boxContainer: {
-    backgroundColor: '#4F4F4F',
+    backgroundColor: '#C0C0C0',
     margin: '5%',
     borderRadius: 10,
     alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  button: {
+    marginVertical: 30,
+    backgroundColor: 'green',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    height: 40,
+    width: '50%',
+    marginLeft: '5%',
+  },
+  textButton: {
+    fontSize: 20,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

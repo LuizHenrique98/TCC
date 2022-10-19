@@ -1,6 +1,6 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, StatusBar} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Conection from '../screens/Conection';
@@ -13,54 +13,54 @@ const Stack = createNativeStackNavigator();
 function Routes() {
   const navigation = useNavigation();
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Configuracoes')}>
-            <Text style={{color: 'white', fontSize: 20}}>Config</Text>
-          </TouchableOpacity>
-        ),
-      }}>
-      <Stack.Screen
-        name="Conexão"
-        component={Conection}
-        options={{
-          title: 'Conexão',
-          headerTintColor: 'white',
-          headerStyle: {backgroundColor: 'green'},
-        }}
-      />
+    <>
+      <StatusBar barStyle={'light-content'} backgroundColor={'green'} />
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Conexão"
+          component={Conection}
+          options={{
+            title: 'Conexão',
+            headerTintColor: 'white',
+            headerStyle: {backgroundColor: 'green'},
+          }}
+        />
 
-      <Stack.Screen
-        name="Home"
-        component={Home}
-        options={{
-          headerTintColor: 'white',
-          headerStyle: {backgroundColor: 'green'},
-        }}
-      />
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{
+            headerTintColor: 'white',
+            headerStyle: {backgroundColor: 'green'},
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Configuracoes')}>
+                <Text style={{color: 'white', fontSize: 25}}>⚙️</Text>
+              </TouchableOpacity>
+            ),
+          }}
+        />
 
-      <Stack.Screen
-        name="Configuracoes"
-        component={Configuracao}
-        options={{
-          headerTintColor: 'white',
-          headerStyle: {backgroundColor: 'green'},
-          title: 'Configurações',
-        }}
-      />
+        <Stack.Screen
+          name="Configuracoes"
+          component={Configuracao}
+          options={{
+            headerTintColor: 'white',
+            headerStyle: {backgroundColor: 'green'},
+            title: 'Configurações',
+          }}
+        />
 
-      <Stack.Screen
-        name="CadastroCultivo"
-        component={CadastroCultivo}
-        options={{
-          headerTintColor: 'white',
-          headerStyle: {backgroundColor: 'green'},
-          title: 'Cadastro de Cultivo',
-        }}
-      />
-      {/*  <Stack.Screen
+        <Stack.Screen
+          name="CadastroCultivo"
+          component={CadastroCultivo}
+          options={{
+            headerTintColor: 'white',
+            headerStyle: {backgroundColor: 'green'},
+            title: 'Cadastro de Cultivo',
+          }}
+        />
+        {/*  <Stack.Screen
         name="Detail"
         component={Detail}
         options={{
@@ -92,7 +92,8 @@ function Routes() {
           },
         }}
       />*/}
-    </Stack.Navigator>
+      </Stack.Navigator>
+    </>
   );
 }
 

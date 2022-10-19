@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Entypo';
+import Icon from 'react-native-vector-icons/Feather';
 import {BleManager} from 'react-native-ble-plx';
 
 import base64 from 'react-native-base64';
