@@ -1,12 +1,14 @@
 import React from 'react';
+import {TouchableOpacity, StatusBar} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {Text, TouchableOpacity, StatusBar} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Conection from '../screens/Conection';
 import Home from '../screens/Home';
 import Configuracao from '../screens/Configuracao';
-import CadastroCultivo from '../screens/CadastroCultivo';
+import CadastroAmostra from '../screens/CadastroAmostra';
+
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,7 +37,7 @@ function Routes() {
             headerRight: () => (
               <TouchableOpacity
                 onPress={() => navigation.navigate('Configuracoes')}>
-                <Text style={{color: 'white', fontSize: 25}}>⚙️</Text>
+                <Icon name="options" size={25} />
               </TouchableOpacity>
             ),
           }}
@@ -52,46 +54,14 @@ function Routes() {
         />
 
         <Stack.Screen
-          name="CadastroCultivo"
-          component={CadastroCultivo}
+          name="CadastroAmostra"
+          component={CadastroAmostra}
           options={{
             headerTintColor: 'white',
             headerStyle: {backgroundColor: 'green'},
-            title: 'Cadastro de Cultivo',
+            title: 'Cadastro de Amostra',
           }}
         />
-        {/*  <Stack.Screen
-        name="Detail"
-        component={Detail}
-        options={{
-          title: 'Detalhes',
-          headerTintColor: '#FFF',
-          headerStyle: {
-            backgroundColor: '#232630',
-          },
-        }}
-      />
-      <Stack.Screen
-        name="CategoryPosts"
-        component={CategoryPosts}
-        options={{
-          headerTintColor: '#FFF',
-          headerStyle: {
-            backgroundColor: '#232630',
-          },
-        }}
-      />
-      <Stack.Screen
-        name="Search"
-        component={Search}
-        options={{
-          title: 'Procurando algo?',
-          headerTintColor: '#FFF',
-          headerStyle: {
-            backgroundColor: '#232630',
-          },
-        }}
-      />*/}
       </Stack.Navigator>
     </>
   );

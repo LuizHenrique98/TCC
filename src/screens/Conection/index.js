@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   View,
@@ -7,150 +7,162 @@ import {
   StyleSheet,
   PermissionsAndroid,
   FlatList,
-  LogBox,
+  Alert,
+  ToastAndroid,
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
-import {BleManager} from 'react-native-ble-plx';
 
-import base64 from 'react-native-base64';
+import Bluetooth from 'react-native-bluetooth-serial-next';
 
-LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
-LogBox.ignoreAllLogs(); //Ignore all log notifications
-
-const bleManager = new BleManager();
 export default function Conection() {
   const navigation = useNavigation();
 
-  const [conected, setConected] = useState(false);
-  const [listDevices, setListDevices] = useState();
+  const [conectado, setConectado] = useState(false);
+  const [listaDevicesPareados, setListaDevicesPareados] = useState([]);
 
-  async function scanDevices() {
-    PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-    ).then(result => {
-      if (!result) {
-        PermissionsAndroid.request(
+  useEffect(() => {
+    async function init() {
+      try {
+        PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-        );
-      } else {
-        console.log('oioioi');
-        // display the Activityindicator
-
-        bleManager.startDeviceScan(null, null, (error, scannedDevice) => {
-          if (error) {
-            console.log('erro');
-            console.warn(error);
-            return;
+        ).then(result => {
+          if (!result) {
+            PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+            );
           }
-
-          // bleManager.stopDeviceScan();
-          console.log('teste');
-          connectDevice(scannedDevice);
         });
-
-        // stop scanning devices after 5 seconds
-        setTimeout(() => {
-          bleManager.stopDeviceScan();
-        }, 10);
+      } catch (error) {
+        console.log(error);
+        Alert.alert('Ops... Parece que algo deu errado :(');
       }
-    });
+    }
+    init();
+  }, []);
+
+  async function handleProcurarDispositivos() {
+    try {
+      var granted;
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+      ).then(result => {
+        if (!result) {
+          granted = PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+          );
+        }
+      });
+
+      if (granted !== PermissionsAndroid.RESULTS.granted) {
+        return;
+      }
+      await Bluetooth.requestEnable();
+
+      const enabled = await Bluetooth.isEnabled();
+
+      if (enabled && granted === PermissionsAndroid.RESULTS.granted) {
+        const devicesPareados = await Bluetooth.list();
+        setListaDevicesPareados(devicesPareados);
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Ops... Algo deu errado, verifique as permissões do APP!');
+    }
   }
 
-  async function connectDevice(device) {
-    console.log('connecting to Device:', device.name);
+  async function handleConectar(deviceId) {
+    try {
+      await Bluetooth.connect(deviceId);
 
-    device
-      .connect()
-      .then(device => {
-        setListDevices(device);
-        setConected(true);
-        return device.discoverAllServicesAndCharacteristics();
-      })
-      .then(device => {
-        //  Set what to do when DC is detected
-        bleManager.onDeviceDisconnected(device.id, (error, device) => {
-          console.log('Device DC');
-          setConected(false);
-        });
+      const conectado = await Bluetooth.isConnected();
 
-        //Read inital values
-
-        //Message
-        device
-          .readCharacteristicForService(SERVICE_UUID, MESSAGE_UUID)
-          .then(valenc => {
-            setMessage(base64.decode(valenc?.value));
-          });
-
-        //BoxValue
-        device
-          .readCharacteristicForService(SERVICE_UUID, BOX_UUID)
-          .then(valenc => {
-            setBoxValue(StringToBool(base64.decode(valenc?.value)));
-          });
-
-        //monitor values and tell what to do when receiving an update
-
-        //Message
-        device.monitorCharacteristicForService(
-          SERVICE_UUID,
-          MESSAGE_UUID,
-          (error, characteristic) => {
-            if (characteristic?.value != null) {
-              setMessage(base64.decode(characteristic?.value));
-              console.log(
-                'Message update received: ',
-                base64.decode(characteristic?.value),
-              );
-            }
-          },
-          'messagetransaction',
+      if (conectado) {
+        ToastAndroid.showWithGravity(
+          'Conectado com sucesso!',
+          ToastAndroid.SHORT,
+          ToastAndroid.TOP,
         );
+        navigation.navigate('Home');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Ops... Algo deu errado ao se conectar com o dispositivo');
+    }
 
-        //BoxValue
-        device.monitorCharacteristicForService(
-          SERVICE_UUID,
-          BOX_UUID,
-          (error, characteristic) => {
-            if (characteristic?.value != null) {
-              setBoxValue(StringToBool(base64.decode(characteristic?.value)));
-              console.log(
-                'Box Value update received: ',
-                base64.decode(characteristic?.value),
-              );
-            }
-          },
-          'boxtransaction',
-        );
+    //    device(deviceId);
+    // device = await Bluetooth.connect(deviceId);
+    //  mydevice.connect();
 
-        console.log('Connection established');
-      });
+    // console.log('device' + JSON.stringify(device));
+
+    //const data = await Bluetooth.readOnce();
+    // console.log(data);
+    /*  await Bluetooth.read((data, subscription) => {
+      console.log('aqui');
+      console.log('Your data:' + data);
+      console.log('teste: ' + subscription);
+    });
+
+    console.log(dados);*/
+
+    /*  console.log('teste');
+    mydevice.readEvery(
+      (data, intervalId) => {
+        console.log(data);
+
+        if (this.imBoredNow && intervalId) {
+          clearInterval(intervalId);
+        }
+      },
+      5000,
+      '\r\n',
+    );*/
+
+    //  const teste = mydevice.readFromDevice();
+    //  console.log(teste);
+    //   mydevice.readOnce;
+    // mydevice.readUntilDelimiter
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Buscar dispositivos</Text>
-        <TouchableOpacity onPress={scanDevices}>
-          <Text style={styles.emoji}>🔎</Text>
+        <Text style={styles.title}>Lista de dispositivos pareados</Text>
+        <TouchableOpacity onPress={handleProcurarDispositivos}>
+          <Icon
+            name="refresh-ccw"
+            size={20}
+            color={'black'}
+            style={styles.emoji}
+          />
         </TouchableOpacity>
       </View>
-      <Text style={styles.text}>Lista de dispositivos</Text>
-      {conected && (
-        <FlatList
-          data={listDevices}
-          keyExtractor={device => device.name}
-          renderItem={({item}) => <Text>{item.name} teste</Text>}
-        />
-      )}
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('Home')}>
-        <Text>Próximo</Text>
-      </TouchableOpacity>
+      <FlatList
+        style={styles.lista}
+        data={listaDevicesPareados}
+        keyExtractor={device => device.id}
+        ListEmptyComponent={
+          <Text
+            style={{
+              marginTop: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            Clique no botão para exibir {'\n'} os dispositivos pareados
+          </Text>
+        }
+        renderItem={({item}) => {
+          return (
+            <TouchableOpacity
+              style={styles.buttonLista}
+              onPress={() => handleConectar(item.id)}>
+              <Text style={styles.textoLista}>{item.name}</Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -165,14 +177,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     margin: 20,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 20,
-    color: '#000',
+    color: 'black',
+    fontWeight: 'bold',
   },
   emoji: {
-    fontSize: 20,
+    fontSize: 25,
+    color: 'green',
+    marginLeft: 15,
   },
   button: {
     backgroundColor: 'green',
@@ -184,5 +198,31 @@ const styles = StyleSheet.create({
     marginTop: 100,
     marginLeft: 150,
   },
-  text: {},
+  text: {
+    fontSize: 15,
+    color: 'black',
+  },
+  lista: {
+    width: '90%',
+    backgroundColor: '#C0C0C0',
+    borderRadius: 5,
+    marginTop: 10,
+    marginBottom: 30,
+    padding: 15,
+  },
+  textoLista: {
+    fontSize: 20,
+    color: 'black',
+    fontWeight: 'bold',
+    height: 50,
+    marginTop: 10,
+    marginLeft: 10,
+  },
+  buttonLista: {
+    backgroundColor: 'white',
+    marginTop: 20,
+    borderRadius: 10,
+    width: '100%',
+    justifyContent: 'center',
+  },
 });

@@ -16,7 +16,7 @@ export default function Configuracao() {
   const navigation = useNavigation();
   const [data, setData] = useState([]);
 
-  const {getItem, setItem} = useAsyncStorage('@savePulverizador:cultivo');
+  const {getItem, setItem} = useAsyncStorage('@savePulverizador:amostra');
 
   useFocusEffect(
     useCallback(() => {
@@ -45,7 +45,7 @@ export default function Configuracao() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.boxCabecalho}>
-        <Text style={styles.texto}>Cultivos cadastrados</Text>
+        <Text style={styles.texto}>Amostras cadastradas</Text>
 
         {data.length > 0 && (
           <FlatList
@@ -55,7 +55,7 @@ export default function Configuracao() {
             renderItem={({item}) => (
               <View style={styles.boxButtonLista}>
                 <TouchableOpacity style={styles.buttonLista}>
-                  <Text style={styles.textoLista}> {item.cultivo} </Text>
+                  <Text style={styles.textoLista}> {item.amostra} </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -70,7 +70,7 @@ export default function Configuracao() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('CadastroCultivo')}>
+          onPress={() => navigation.navigate('CadastroAmostra')}>
           <Text style={styles.texoButton}>Inserir</Text>
         </TouchableOpacity>
       </View>

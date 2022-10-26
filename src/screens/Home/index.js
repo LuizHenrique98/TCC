@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 
 import {Picker} from '@react-native-picker/picker';
@@ -12,8 +13,8 @@ import AsyncStorate from '@react-native-async-storage/async-storage';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 export default function Home() {
-  const [listaCultivos, setListaCultivos] = useState([]);
-  const [cultivoSelecionado, setCultivoSelecionado] = useState(0);
+  const [listaAmostra, setListaAmostra] = useState([]);
+  const [amostraSelecionada, setAmostraSelecionada] = useState(0);
   const [intervalo, setInvervalo] = useState(0);
   const [distancia, setDistancia] = useState(0);
   const [umidade, setUmidade] = useState(0);
@@ -39,11 +40,11 @@ export default function Home() {
   }, []);*/
 
   async function handleData() {
-    const response = await AsyncStorate.getItem('@savePulverizador:cultivo');
+    const response = await AsyncStorate.getItem('@savePulverizador:amostra');
 
     const responseData = response ? JSON.parse(response) : [];
 
-    setListaCultivos(responseData);
+    setListaAmostra(responseData);
   }
 
   function handleAtualizaValores(id) {}
@@ -64,86 +65,88 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.boxCabecalho}>
-        <View style={styles.boxCultivo}>
-          <Text style={styles.texto}>Cultivo</Text>
-          <Picker
-            selectedValue={cultivoSelecionado}
-            onValueChange={(itemValue, itemIndex) => {
-              console.log(listaCultivos);
-              console.log('indice cultivo selecionado: ' + itemValue);
-              setCultivoSelecionado(itemValue);
-              setDistancia(listaCultivos[itemValue].altura);
-              setUmidade(listaCultivos[itemValue].umidade);
-              setTemperatura(listaCultivos[itemValue].temperatura);
-            }}
-            style={styles.picker}>
-            {listaCultivos.map(index => {
-              return (
-                <Picker.Item
-                  label={index.cultivo}
-                  value={index.id}
-                  key={index.id}
-                  style={{fontSize: 20}}
-                />
-              );
-            })}
-          </Picker>
-        </View>
-        <View style={styles.boxCultivo}>
-          <Text style={styles.texto}>Coleta de dados em segundos:</Text>
-          <Picker
-            selectedValue={intervalo}
-            onValueChange={(itemValue, itemIndex) => setInvervalo(itemValue)}
-            style={styles.picker}>
-            <Picker.Item label="0" value={0} key={0} />
-            <Picker.Item label="1" value={1} key={1} />
-            <Picker.Item label="2" value={2} key={2} />
-            <Picker.Item label="3" value={3} key={3} />
-            <Picker.Item label="4" value={4} key={4} />
-            <Picker.Item label="5" value={5} key={5} />
-            <Picker.Item label="10" value={10} key={10} />
-            <Picker.Item label="15" value={15} key={15} />
-            <Picker.Item label="20" value={20} key={20} />
-            <Picker.Item label="25" value={25} key={25} />
-            <Picker.Item label="30" value={30} key={30} />
-            <Picker.Item label="60" value={60} key={60} />
-          </Picker>
-        </View>
-      </View>
-
-      <View style={styles.boxContainer}>
-        <View style={styles.boxCultivo}>
-          <Text style={styles.texto}> Esquerdo {distancia} </Text>
-          <Text style={styles.texto}> Direito {distancia} </Text>
+    <ScrollView>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.boxCabecalho}>
+          <View style={styles.boxCultivo}>
+            <Text style={styles.texto}>Cultivo</Text>
+            <Picker
+              selectedValue={amostraSelecionada}
+              onValueChange={(itemValue, itemIndex) => {
+                console.log(listaAmostra);
+                console.log('indice cultivo selecionado: ' + itemValue);
+                setCultivoSelecionado(itemValue);
+                setDistancia(listaAmostra[itemValue].altura);
+                setUmidade(listaAmostra[itemValue].umidade);
+                setTemperatura(listaAmostra[itemValue].temperatura);
+              }}
+              style={styles.picker}>
+              {listaAmostra.map(index => {
+                return (
+                  <Picker.Item
+                    label={index.amostra}
+                    value={index.id}
+                    key={index.id}
+                    style={{fontSize: 20}}
+                  />
+                );
+              })}
+            </Picker>
+          </View>
+          <View style={styles.boxCultivo}>
+            <Text style={styles.texto}>Coleta de dados em segundos:</Text>
+            <Picker
+              selectedValue={intervalo}
+              onValueChange={(itemValue, itemIndex) => setInvervalo(itemValue)}
+              style={styles.picker}>
+              <Picker.Item label="0" value={0} key={0} />
+              <Picker.Item label="1" value={1} key={1} />
+              <Picker.Item label="2" value={2} key={2} />
+              <Picker.Item label="3" value={3} key={3} />
+              <Picker.Item label="4" value={4} key={4} />
+              <Picker.Item label="5" value={5} key={5} />
+              <Picker.Item label="10" value={10} key={10} />
+              <Picker.Item label="15" value={15} key={15} />
+              <Picker.Item label="20" value={20} key={20} />
+              <Picker.Item label="25" value={25} key={25} />
+              <Picker.Item label="30" value={30} key={30} />
+              <Picker.Item label="60" value={60} key={60} />
+            </Picker>
+          </View>
         </View>
 
-        <View style={styles.boxCultivo}>
-          <Text style={styles.texto}> {ladoEsquerdo} </Text>
-          <Text style={styles.texto}>{ladoDireito} </Text>
+        <View style={styles.boxContainer}>
+          <View style={styles.boxCultivo}>
+            <Text style={styles.texto}> Esquerdo {distancia} </Text>
+            <Text style={styles.texto}> Direito {distancia} </Text>
+          </View>
+
+          <View style={styles.boxCultivo}>
+            <Text style={styles.texto}> {ladoEsquerdo} </Text>
+            <Text style={styles.texto}>{ladoDireito} </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={[styles.boxContainer, {height: 170}]}>
-        <View>
-          <Text style={styles.texto}>Temperatura ideal: {temperatura} </Text>
-          <Text style={styles.texto}> {temperaturaConst} </Text>
-          <Text style={styles.texto}>Umidade do Ar ideal: {umidade} </Text>
-          <Text style={styles.texto}> {umidadeConst} </Text>
+        <View style={[styles.boxContainer, {height: 170}]}>
+          <View>
+            <Text style={styles.texto}>Temperatura ideal: {temperatura} </Text>
+            <Text style={styles.texto}> {temperaturaConst} </Text>
+            <Text style={styles.texto}>Umidade do Ar ideal: {umidade} </Text>
+            <Text style={styles.texto}> {umidadeConst} </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={{flexDirection: 'row', width: '80%'}}>
-        <TouchableOpacity style={styles.button} onPress={handleValores}>
-          <Text style={styles.textButton}>Iniciar</Text>
-        </TouchableOpacity>
+        <View style={{flexDirection: 'row', width: '80%'}}>
+          <TouchableOpacity style={styles.button} onPress={handleValores}>
+            <Text style={styles.textButton}>Iniciar</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleParar}>
-          <Text style={styles.textButton}>Parar</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          <TouchableOpacity style={styles.button} onPress={handleParar}>
+            <Text style={styles.textButton}>Parar</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </ScrollView>
   );
 }
 
