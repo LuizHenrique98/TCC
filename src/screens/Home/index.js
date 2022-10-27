@@ -11,6 +11,7 @@ import {
 import {Picker} from '@react-native-picker/picker';
 import AsyncStorate from '@react-native-async-storage/async-storage';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import Bluetooth from 'react-native-bluetooth-serial-next';
 
 export default function Home() {
   const [listaAmostra, setListaAmostra] = useState([]);
@@ -19,25 +20,17 @@ export default function Home() {
   const [distancia, setDistancia] = useState(0);
   const [umidade, setUmidade] = useState(0);
   const [temperatura, setTemperatura] = useState(0);
-
-  const [ladoEsquerdo, setLadoEsquerdo] = useState(0);
-  const [ladoDireito, setLadoDireito] = useState(0);
-  const [temperaturaConst, setTemperaturaConst] = useState(0);
-  const [umidadeConst, setUmidadeConst] = useState(0);
-
-  var valoresAleatorios;
-
-  //  const {getItem, setItem} = useAsyncStorage('@savePulverizador:cultivo');
+  const [buttonTesteDisabled, setButtonTesteDisabled] = useState(false);
+  const [buttonPararTesteDisabled, setButtonPararTesteDisabled] =
+    useState(true);
+  const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [buttonPararDisabled, setButtonPararDisabled] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
       handleData();
     }, []),
   );
-
-  /*useEffect(() => {
-    handleData();
-  }, []);*/
 
   async function handleData() {
     const response = await AsyncStorate.getItem('@savePulverizador:amostra');
@@ -47,26 +40,46 @@ export default function Home() {
     setListaAmostra(responseData);
   }
 
-  function handleAtualizaValores(id) {}
+  async function handleColetarDados(stop) {
+    await Bluetooth.readEvery(
+      (data, intervalId) => {
+        if (stop) {
+          clearInterval(intervalId);
+        }
 
-  function handleValores() {
-    valoresAleatorios = setInterval(() => {
-      console.log('passou 3 segundos');
-      setLadoEsquerdo(Math.floor(Math.random() * 70));
-      setLadoDireito(Math.floor(Math.random() * 70));
-      setTemperaturaConst(Math.floor(Math.random() * 100));
-      setUmidadeConst(Math.floor(Math.random() * 100));
-    }, 3000);
+        var dataString = data.replace(/@/g, '"');
+
+        var json = JSON.parse(dataString);
+
+        setDistancia(json.Distancia);
+        setTemperatura(json.Temperatura);
+        setUmidade(json.Umidade);
+
+        console.log(json);
+      },
+      5000,
+      '\r\n',
+    );
+
+    //  const teste = mydevice.readFromDevice();
+    //  console.log(teste);
+    //   mydevice.readOnce;
+    // mydevice.readUntilDelimiter
+
+    /*  setLadoEsquerdo(Math.floor(Math.random() * 70));
+    setLadoDireito(Math.floor(Math.random() * 70));
+    setTemperaturaConst(Math.floor(Math.random() * 100));
+    setUmidadeConst(Math.floor(Math.random() * 100));*/
   }
 
   function handleParar() {
-    console.log('pausando loop');
-    clearInterval(valoresAleatorios);
+    // console.log('pausando loop');
+    //clearInterval(intervalId);
   }
 
   return (
-    <ScrollView>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
         <View style={styles.boxCabecalho}>
           <View style={styles.boxCultivo}>
             <Text style={styles.texto}>Cultivo</Text>
@@ -122,31 +135,31 @@ export default function Home() {
           </View>
 
           <View style={styles.boxCultivo}>
-            <Text style={styles.texto}> {ladoEsquerdo} </Text>
-            <Text style={styles.texto}>{ladoDireito} </Text>
+            <Text style={styles.texto}> {distancia} </Text>
+            <Text style={styles.texto}>{distancia} </Text>
           </View>
         </View>
 
-        <View style={[styles.boxContainer, {height: 170}]}>
+        <View style={styles.boxContainer}>
           <View>
             <Text style={styles.texto}>Temperatura ideal: {temperatura} </Text>
-            <Text style={styles.texto}> {temperaturaConst} </Text>
+            <Text style={styles.texto}> {temperatura} </Text>
             <Text style={styles.texto}>Umidade do Ar ideal: {umidade} </Text>
-            <Text style={styles.texto}> {umidadeConst} </Text>
+            <Text style={styles.texto}> {umidade} </Text>
           </View>
         </View>
+      </ScrollView>
 
-        <View style={{flexDirection: 'row', width: '80%'}}>
-          <TouchableOpacity style={styles.button} onPress={handleValores}>
-            <Text style={styles.textButton}>Iniciar</Text>
-          </TouchableOpacity>
+      <View style={{flexDirection: 'row', width: '80%', margin: '3%'}}>
+        <TouchableOpacity style={styles.button} onPress={handleColetarDados}>
+          <Text style={styles.textButton}>Iniciar</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={handleParar}>
-            <Text style={styles.textButton}>Parar</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleParar}>
+          <Text style={styles.textButton}>Parar</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -187,7 +200,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   button: {
-    marginVertical: 30,
     backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',

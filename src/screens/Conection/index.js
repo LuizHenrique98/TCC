@@ -19,7 +19,6 @@ import Bluetooth from 'react-native-bluetooth-serial-next';
 export default function Conection() {
   const navigation = useNavigation();
 
-  const [conectado, setConectado] = useState(false);
   const [listaDevicesPareados, setListaDevicesPareados] = useState([]);
 
   useEffect(() => {
@@ -90,40 +89,6 @@ export default function Conection() {
       console.log(error);
       Alert.alert('Ops... Algo deu errado ao se conectar com o dispositivo');
     }
-
-    //    device(deviceId);
-    // device = await Bluetooth.connect(deviceId);
-    //  mydevice.connect();
-
-    // console.log('device' + JSON.stringify(device));
-
-    //const data = await Bluetooth.readOnce();
-    // console.log(data);
-    /*  await Bluetooth.read((data, subscription) => {
-      console.log('aqui');
-      console.log('Your data:' + data);
-      console.log('teste: ' + subscription);
-    });
-
-    console.log(dados);*/
-
-    /*  console.log('teste');
-    mydevice.readEvery(
-      (data, intervalId) => {
-        console.log(data);
-
-        if (this.imBoredNow && intervalId) {
-          clearInterval(intervalId);
-        }
-      },
-      5000,
-      '\r\n',
-    );*/
-
-    //  const teste = mydevice.readFromDevice();
-    //  console.log(teste);
-    //   mydevice.readOnce;
-    // mydevice.readUntilDelimiter
   }
 
   return (
@@ -139,30 +104,31 @@ export default function Conection() {
           />
         </TouchableOpacity>
       </View>
-      <FlatList
-        style={styles.lista}
-        data={listaDevicesPareados}
-        keyExtractor={device => device.id}
-        ListEmptyComponent={
-          <Text
-            style={{
-              marginTop: 20,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            Clique no botão para exibir {'\n'} os dispositivos pareados
-          </Text>
-        }
-        renderItem={({item}) => {
-          return (
-            <TouchableOpacity
-              style={styles.buttonLista}
-              onPress={() => handleConectar(item.id)}>
-              <Text style={styles.textoLista}>{item.name}</Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
+      <Text
+        style={{
+          marginTop: '3%',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'black',
+        }}>
+        Clique no botão para exibir {'\n'} os dispositivos pareados
+      </Text>
+      {listaDevicesPareados.length > 0 && (
+        <FlatList
+          style={styles.lista}
+          data={listaDevicesPareados}
+          keyExtractor={device => device.id}
+          renderItem={({item}) => {
+            return (
+              <TouchableOpacity
+                style={styles.buttonLista}
+                onPress={() => handleConectar(item.id)}>
+                <Text style={styles.textoLista}>{item.name}</Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -176,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: 20,
+    marginTop: '3%',
   },
   title: {
     fontSize: 20,
