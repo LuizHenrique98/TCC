@@ -6,25 +6,26 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  FlatList,
 } from 'react-native';
 
 import {Picker} from '@react-native-picker/picker';
 import AsyncStorate from '@react-native-async-storage/async-storage';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import Bluetooth from 'react-native-bluetooth-serial-next';
+
+import BluetoothRead from '../../components/BluetoothRead';
 
 export default function Home() {
   const [listaAmostra, setListaAmostra] = useState([]);
-  const [amostraSelecionada, setAmostraSelecionada] = useState(0);
+  const [amostraSelecionada, setAmostraSelecionada] = useState(null);
   const [intervalo, setInvervalo] = useState(0);
-  const [distancia, setDistancia] = useState(0);
-  const [umidade, setUmidade] = useState(0);
-  const [temperatura, setTemperatura] = useState(0);
-  const [buttonTesteDisabled, setButtonTesteDisabled] = useState(false);
-  const [buttonPararTesteDisabled, setButtonPararTesteDisabled] =
-    useState(true);
-  const [buttonDisabled, setButtonDisabled] = useState(false);
-  const [buttonPararDisabled, setButtonPararDisabled] = useState(true);
+  const [alturaIdeal, setAlturaIdeal] = useState(0);
+  const [umidadeIdeal, setUmidadeIdeal] = useState(0);
+  const [temperaturaIdeal, setTemperaturaIdeal] = useState(0);
+  const [enable, setEnable] = useState(false);
+  const [stopRead, setStopRead] = useState(false);
+
+  const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
@@ -32,66 +33,44 @@ export default function Home() {
     }, []),
   );
 
+  useEffect(() => {
+    if (listaAmostra.length > 0) {
+      setAlturaIdeal(listaAmostra[amostraSelecionada].altura);
+      setTemperaturaIdeal(listaAmostra[amostraSelecionada].temperatura);
+      setUmidadeIdeal(listaAmostra[amostraSelecionada].umidade);
+    }
+  }, [amostraSelecionada]);
+
   async function handleData() {
     const response = await AsyncStorate.getItem('@savePulverizador:amostra');
 
-    const responseData = response ? JSON.parse(response) : [];
+    const responseData = response ? await JSON.parse(response) : [];
 
     setListaAmostra(responseData);
   }
 
-  async function handleColetarDados(stop) {
-    await Bluetooth.readEvery(
-      (data, intervalId) => {
-        if (stop) {
-          clearInterval(intervalId);
-        }
-
-        var dataString = data.replace(/@/g, '"');
-
-        var json = JSON.parse(dataString);
-
-        setDistancia(json.Distancia);
-        setTemperatura(json.Temperatura);
-        setUmidade(json.Umidade);
-
-        console.log(json);
-      },
-      5000,
-      '\r\n',
-    );
-
-    //  const teste = mydevice.readFromDevice();
-    //  console.log(teste);
-    //   mydevice.readOnce;
-    // mydevice.readUntilDelimiter
-
-    /*  setLadoEsquerdo(Math.floor(Math.random() * 70));
-    setLadoDireito(Math.floor(Math.random() * 70));
-    setTemperaturaConst(Math.floor(Math.random() * 100));
-    setUmidadeConst(Math.floor(Math.random() * 100));*/
+  function handleStopRead() {
+    setEnable(false);
+    setStopRead(true);
+    //
   }
 
-  function handleParar() {
-    // console.log('pausando loop');
-    //clearInterval(intervalId);
+  function handleRead() {
+    setStopRead(false);
+    setEnable(true);
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.boxCabecalho}>
-          <View style={styles.boxCultivo}>
-            <Text style={styles.texto}>Cultivo</Text>
+          <View style={{flexDirection: 'row'}}>
+            <Text style={styles.texto}> Amostra </Text>
+
             <Picker
               selectedValue={amostraSelecionada}
               onValueChange={(itemValue, itemIndex) => {
-                console.log(listaAmostra);
-                console.log('indice cultivo selecionado: ' + itemValue);
-                setCultivoSelecionado(itemValue);
-                setDistancia(listaAmostra[itemValue].altura);
-                setUmidade(listaAmostra[itemValue].umidade);
-                setTemperatura(listaAmostra[itemValue].temperatura);
+                setAmostraSelecionada(itemValue);
               }}
               style={styles.picker}>
               {listaAmostra.map(index => {
@@ -106,7 +85,7 @@ export default function Home() {
               })}
             </Picker>
           </View>
-          <View style={styles.boxCultivo}>
+          <View style={{flexDirection: 'row'}}>
             <Text style={styles.texto}>Coleta de dados em segundos:</Text>
             <Picker
               selectedValue={intervalo}
@@ -129,34 +108,45 @@ export default function Home() {
         </View>
 
         <View style={styles.boxContainer}>
-          <View style={styles.boxCultivo}>
-            <Text style={styles.texto}> Esquerdo {distancia} </Text>
-            <Text style={styles.texto}> Direito {distancia} </Text>
-          </View>
-
-          <View style={styles.boxCultivo}>
-            <Text style={styles.texto}> {distancia} </Text>
-            <Text style={styles.texto}>{distancia} </Text>
-          </View>
+          <Text style={styles.texto2}>Altura ideal: {alturaIdeal} M </Text>
+          <Text style={styles.texto2}>Temp. ideal: {temperaturaIdeal} °C</Text>
+          <Text style={styles.texto2}>Umi. do Ar ideal: {umidadeIdeal} %</Text>
         </View>
 
-        <View style={styles.boxContainer}>
-          <View>
-            <Text style={styles.texto}>Temperatura ideal: {temperatura} </Text>
-            <Text style={styles.texto}> {temperatura} </Text>
-            <Text style={styles.texto}>Umidade do Ar ideal: {umidade} </Text>
-            <Text style={styles.texto}> {umidade} </Text>
-          </View>
-        </View>
+        {enable && (
+          <BluetoothRead amostra={amostraSelecionada} intervalo={intervalo} />
+        )}
       </ScrollView>
 
-      <View style={{flexDirection: 'row', width: '80%', margin: '3%'}}>
-        <TouchableOpacity style={styles.button} onPress={handleColetarDados}>
+      <View
+        style={{
+          flexDirection: 'row',
+          width: '75%',
+          marginHorizontal: '3%',
+          marginBottom: '1%',
+        }}>
+        <TouchableOpacity style={styles.button} onPress={handleRead}>
           <Text style={styles.textButton}>Iniciar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleParar}>
+        <TouchableOpacity style={styles.button} onPress={handleStopRead}>
           <Text style={styles.textButton}>Parar</Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          width: '75%',
+          marginHorizontal: '3%',
+          marginBottom: '3%',
+        }}>
+        <TouchableOpacity style={styles.button} onPress={handleStopRead}>
+          <Text style={styles.textButton}>Gráfico</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('ExportarCSV')}>
+          <Text style={styles.textButton}>Exportar CSV</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -170,16 +160,18 @@ const styles = StyleSheet.create({
   boxCabecalho: {
     backgroundColor: '#C0C0C0',
     borderRadius: 10,
-    margin: '5%',
+    marginTop: '3%',
+    marginHorizontal: '3%',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   boxCultivo: {
     flexDirection: 'row',
+    width: '50%',
   },
   texto: {
     fontSize: 20,
-    padding: 10,
+    padding: 6,
     width: '60%',
     color: 'black',
     fontWeight: 'bold',
@@ -194,9 +186,9 @@ const styles = StyleSheet.create({
   },
   boxContainer: {
     backgroundColor: '#C0C0C0',
-    margin: '5%',
+    marginTop: '3%',
+    marginHorizontal: '3%',
     borderRadius: 10,
-    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   button: {
@@ -205,12 +197,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
     height: 40,
-    width: '50%',
-    marginLeft: '5%',
+    width: '60%',
+    marginHorizontal: '1%',
   },
   textButton: {
     fontSize: 20,
     color: 'white',
+    fontWeight: 'bold',
+  },
+  texto2: {
+    fontSize: 20,
+    padding: 6,
+    width: '100%',
+    color: 'black',
     fontWeight: 'bold',
   },
 });

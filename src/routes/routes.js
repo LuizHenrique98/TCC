@@ -7,6 +7,7 @@ import Conection from '../screens/Conection';
 import Home from '../screens/Home';
 import Configuracao from '../screens/Configuracao';
 import CadastroAmostra from '../screens/CadastroAmostra';
+import ExportarCSV from '../screens/ExportarCsv';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -37,7 +38,7 @@ function Routes() {
             headerRight: () => (
               <TouchableOpacity
                 onPress={() => navigation.navigate('Configuracoes')}>
-                <Icon name="options" size={25} />
+                <Icon name="options" size={25} style={{color: 'white'}} />
               </TouchableOpacity>
             ),
           }}
@@ -60,6 +61,16 @@ function Routes() {
             headerTintColor: 'white',
             headerStyle: {backgroundColor: 'green'},
             title: 'Cadastro de Amostra',
+          }}
+        />
+
+        <Stack.Screen
+          name="ExportarCSV"
+          component={ExportarCSV}
+          options={{
+            title: 'Exportar CSV',
+            headerTintColor: 'white',
+            headerStyle: {backgroundColor: 'green'},
           }}
         />
       </Stack.Navigator>

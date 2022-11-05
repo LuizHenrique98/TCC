@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 
 import {useAsyncStorage} from '@react-native-async-storage/async-storage';
@@ -47,27 +48,33 @@ export default function Configuracao() {
       <View style={styles.boxCabecalho}>
         <Text style={styles.texto}>Amostras cadastradas</Text>
 
-        {data.length > 0 && (
-          <FlatList
-            data={data}
-            keyExtractor={item => item.id}
-            style={styles.lista}
-            renderItem={({item}) => (
-              <View style={styles.boxButtonLista}>
-                <TouchableOpacity style={styles.buttonLista}>
-                  <Text style={styles.textoLista}> {item.amostra} </Text>
-                </TouchableOpacity>
+        <FlatList
+          ListEmptyComponent={
+            <Text style={{color: 'black', fontSize: 20}}>
+              Nenhuma amostra cadastrada {'\n'} Clique no botão "Inserir" para
+              cadastrar
+            </Text>
+          }
+          data={data}
+          keyExtractor={item => item.id}
+          style={styles.lista}
+          renderItem={({item}) => (
+            <View style={styles.boxButtonLista}>
+              <TouchableOpacity style={styles.buttonLista}>
+                <Text style={styles.textoLista}> {item.amostra} </Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.buttonRemove}
-                  onPress={() => handleRemove(item.id)}>
-                  <Icon name="trash-o" size={30} />
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-        )}
+              <TouchableOpacity
+                style={styles.buttonRemove}
+                onPress={() => handleRemove(item.id)}>
+                <Icon name="trash-o" size={30} />
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      </View>
 
+      <View style={{alignItems: 'center'}}>
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('CadastroAmostra')}>
@@ -84,7 +91,8 @@ const styles = StyleSheet.create({
   },
   boxCabecalho: {
     alignItems: 'center',
-    margin: 10,
+    margin: '3%',
+    marginBottom: '1%',
   },
   texto: {
     fontSize: 25,
@@ -95,8 +103,10 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#C0C0C0',
     borderRadius: 5,
-    margin: 10,
-    padding: 15,
+    margin: '2%',
+    padding: '3%',
+    marginBottom: '5%',
+    height: '75%',
   },
   textoLista: {
     fontSize: 20,
@@ -108,19 +118,18 @@ const styles = StyleSheet.create({
   },
   buttonLista: {
     backgroundColor: 'white',
-    marginTop: 20,
+    marginTop: '3%',
     borderRadius: 10,
     width: '100%',
-    justifyContent: 'center',
+    marginBottom: '5%',
   },
   button: {
-    marginVertical: 30,
     backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
     height: 40,
-    width: '100%',
+    width: '90%',
   },
   texoButton: {
     fontSize: 20,
@@ -136,10 +145,17 @@ const styles = StyleSheet.create({
   buttonRemove: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: 60,
     borderRadius: 10,
     position: 'absolute',
     marginLeft: '85%',
-    paddingTop: 10,
+  },
+  buttonTeste: {
+    alignItems: 'center',
+    backgroundColor: 'green',
+    justifyContent: 'center',
+    borderRadius: 10,
+    height: 40,
+    width: '42%',
+    marginTop: '2%',
   },
 });

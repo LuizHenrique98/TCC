@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
-  Keyboard,
   TextInput,
   SafeAreaView,
   StyleSheet,
@@ -21,6 +20,13 @@ export default function CadastroAmostra(param) {
   const [umidade, setUmidade] = useState(0);
 
   const {getItem, setItem} = useAsyncStorage('@savePulverizador:amostra');
+
+  useEffect(() => {
+    Alert.alert(
+      'Atenção!',
+      'Separar números decimais com ponto. Exemplo: (30.15)',
+    );
+  }, []);
 
   async function handleSalvar() {
     if (
@@ -65,46 +71,42 @@ export default function CadastroAmostra(param) {
   }
 
   return (
-    <ScrollView>
-      <SafeAreaView style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.boxCadastro}>
-            <Text style={styles.texto}>Amostra</Text>
-            <TextInput
-              style={styles.textInput}
-              onChangeText={text => setAmostra(text)}
-              value={amostra}
-            />
-            <Text style={styles.texto}>Altura ideal (M)</Text>
-            <TextInput
-              style={styles.textInput}
-              onChangeText={text => setAltura(text)}
-              value={altura}
-              keyboardType="numeric"
-            />
-            <Text style={styles.texto}>
-              Temperatura máxima recomendada (°C)
-            </Text>
-            <TextInput
-              style={styles.textInput}
-              onChangeText={text => setTemperatura(text)}
-              value={temperatura}
-              keyboardType="numeric"
-            />
-            <Text style={styles.texto}>Umidade máxima recomendada (%)</Text>
-            <TextInput
-              style={styles.textInput}
-              onChangeText={text => setUmidade(text)}
-              value={umidade}
-              keyboardType="numeric"
-            />
-            <TouchableOpacity style={styles.button} onPress={handleSalvar}>
-              <Text style={styles.textoBotao}> Salvar</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableWithoutFeedback>
-      </SafeAreaView>
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.boxCadastro}>
+          <Text style={styles.texto}>Amostra</Text>
+          <TextInput
+            style={styles.textInput}
+            onChangeText={text => setAmostra(text)}
+            value={amostra}
+          />
+          <Text style={styles.texto}>Altura ideal (M)</Text>
+          <TextInput
+            style={styles.textInput}
+            onChangeText={text => setAltura(text)}
+            value={altura}
+            keyboardType="phone-pad"
+          />
+          <Text style={styles.texto}>Temperatura máxima recomendada (°C)</Text>
+          <TextInput
+            style={styles.textInput}
+            onChangeText={text => setTemperatura(text)}
+            value={temperatura}
+            keyboardType="phone-pad"
+          />
+          <Text style={styles.texto}>Umidade máxima recomendada (%)</Text>
+          <TextInput
+            style={styles.textInput}
+            onChangeText={text => setUmidade(text)}
+            value={umidade}
+            keyboardType="phone-pad"
+          />
+        </View>
+      </ScrollView>
+      <TouchableOpacity style={styles.button} onPress={handleSalvar}>
+        <Text style={styles.textoBotao}> Salvar</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -113,8 +115,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   boxCadastro: {
-    margin: 25,
-    padding: 20,
+    margin: '3%',
+    padding: '5%',
     backgroundColor: '#C0C0C0',
     borderRadius: 10,
   },
@@ -125,11 +127,11 @@ const styles = StyleSheet.create({
   },
   textInput: {
     backgroundColor: 'white',
-    marginVertical: 10,
+    marginVertical: '3%',
     borderRadius: 10,
   },
   button: {
-    marginVertical: 30,
+    margin: '5%',
     backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',
