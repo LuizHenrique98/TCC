@@ -104,6 +104,7 @@ export default function Conection() {
           />
         </TouchableOpacity>
       </View>
+
       <Text
         style={{
           marginTop: '3%',
@@ -113,6 +114,13 @@ export default function Conection() {
         }}>
         Clique no botão para exibir {'\n'} os dispositivos pareados
       </Text>
+
+      <TouchableOpacity
+        style={styles.buttonAvanar}
+        onPress={() => navigation.navigate('Home')}>
+        <Text style={styles.textoButton}>Avançar sem conectar</Text>
+      </TouchableOpacity>
+
       {listaDevicesPareados.length > 0 && (
         <FlatList
           style={styles.lista}
@@ -190,5 +198,18 @@ const styles = StyleSheet.create({
     marginHorizontal: '2%',
     borderRadius: 10,
     justifyContent: 'center',
+  },
+  buttonAvanar: {
+    backgroundColor: 'green',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    marginVertical: '2%',
+    width: '50%',
+    height: 30,
+  },
+  textoButton: {
+    fontSize: 15,
+    color: 'white',
   },
 });

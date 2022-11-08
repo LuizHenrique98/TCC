@@ -1,25 +1,22 @@
 import React, {useState, useEffect} from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
   Alert,
+  Text,
+  View,
+  TextInput,
+  StyleSheet,
   ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
 
-import {useAsyncStorage} from '@react-native-async-storage/async-storage';
+import AsyncStorate from '@react-native-async-storage/async-storage';
 
-export default function CadastroAmostra(param) {
+export default function CadastroAmostra() {
   const [amostra, setAmostra] = useState('');
   const [altura, setAltura] = useState(0);
   const [temperatura, setTemperatura] = useState(0);
   const [umidade, setUmidade] = useState(0);
-
-  const {getItem, setItem} = useAsyncStorage('@savePulverizador:amostra');
 
   useEffect(() => {
     Alert.alert(
@@ -38,13 +35,28 @@ export default function CadastroAmostra(param) {
       Alert.alert('Atenção!', 'Todos os campos devem ser preenchidos');
     } else {
       try {
-        const response = await getItem();
+        var novoId = 0;
+        var id = 0;
 
-        const responseData = response ? JSON.parse(response) : [];
+        const response = await AsyncStorate.getItem(
+          '@savePulverizador:amostra',
+        );
+        const responseData = response ? await JSON.parse(response) : [];
 
-        const lastId = responseData.length - 1;
+        const responseUltimoId = await AsyncStorate.getItem(
+          '@savePulverizador:ultimoId',
+        );
+        const responseUltimoIdParse = responseUltimoId
+          ? await JSON.parse(responseUltimoId)
+          : [];
 
-        const id = lastId + 1;
+        if (typeof responseUltimoIdParse != 'undefined') {
+          novoId = Number(responseUltimoIdParse.ultimoId) + 1;
+        } else {
+          novoId = 0;
+        }
+
+        id = novoId > 0 ? novoId : 0;
 
         const newData = {
           id,
@@ -55,8 +67,17 @@ export default function CadastroAmostra(param) {
         };
 
         const data = [...responseData, newData];
+        const newDataId = {ultimoId: id};
 
-        await setItem(JSON.stringify(data));
+        await AsyncStorate.setItem(
+          '@savePulverizador:amostra',
+          JSON.stringify(data),
+        );
+
+        await AsyncStorate.setItem(
+          '@savePulverizador:ultimoId',
+          JSON.stringify(newDataId),
+        );
 
         Alert.alert('Mensagem', 'Dados gravados com sucesso!');
 
@@ -65,6 +86,7 @@ export default function CadastroAmostra(param) {
         setTemperatura(0);
         setUmidade(0);
       } catch (error) {
+        console.log(error);
         Alert.alert('Ops...', 'Não foi possível cadastrar. Tente novamente');
       }
     }

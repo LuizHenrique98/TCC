@@ -1,29 +1,31 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {
-  SafeAreaView,
   View,
-  StyleSheet,
   Text,
-  TouchableOpacity,
   ScrollView,
-  FlatList,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
 
-import {Picker} from '@react-native-picker/picker';
 import AsyncStorate from '@react-native-async-storage/async-storage';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {Picker} from '@react-native-picker/picker';
+import Bluetooth from 'react-native-bluetooth-serial-next';
 
 import BluetoothRead from '../../components/BluetoothRead';
 
 export default function Home() {
   const [listaAmostra, setListaAmostra] = useState([]);
-  const [amostraSelecionada, setAmostraSelecionada] = useState(null);
-  const [intervalo, setInvervalo] = useState(0);
+  const [idAmostraSelecionada, setIdAmostraSelecionada] = useState(null);
+  const [intervaloColeta, setInvervaloColeta] = useState(0);
   const [alturaIdeal, setAlturaIdeal] = useState(0);
   const [umidadeIdeal, setUmidadeIdeal] = useState(0);
   const [temperaturaIdeal, setTemperaturaIdeal] = useState(0);
   const [enable, setEnable] = useState(false);
   const [stopRead, setStopRead] = useState(false);
+  const [buttonsDisabled, setButtonsDisabled] = useState(false);
 
   const navigation = useNavigation();
 
@@ -35,11 +37,23 @@ export default function Home() {
 
   useEffect(() => {
     if (listaAmostra.length > 0) {
-      setAlturaIdeal(listaAmostra[amostraSelecionada].altura);
-      setTemperaturaIdeal(listaAmostra[amostraSelecionada].temperatura);
-      setUmidadeIdeal(listaAmostra[amostraSelecionada].umidade);
+      const amostra = listaAmostra.filter(
+        item => item.id == idAmostraSelecionada,
+      );
+      setAlturaIdeal(amostra[0].altura);
+      setTemperaturaIdeal(amostra[0].temperatura);
+      setUmidadeIdeal(amostra[0].umidade);
     }
-  }, [amostraSelecionada]);
+  }, [idAmostraSelecionada]);
+
+  useEffect(() => {
+    async function verificaConexao() {
+      const conectado = await Bluetooth.isConnected();
+
+      setButtonsDisabled(!conectado);
+    }
+    verificaConexao();
+  }, []);
 
   async function handleData() {
     const response = await AsyncStorate.getItem('@savePulverizador:amostra');
@@ -68,9 +82,9 @@ export default function Home() {
             <Text style={styles.texto}> Amostra </Text>
 
             <Picker
-              selectedValue={amostraSelecionada}
+              selectedValue={idAmostraSelecionada}
               onValueChange={(itemValue, itemIndex) => {
-                setAmostraSelecionada(itemValue);
+                setIdAmostraSelecionada(itemValue);
               }}
               style={styles.picker}>
               {listaAmostra.map(index => {
@@ -87,34 +101,30 @@ export default function Home() {
           </View>
           <View style={{flexDirection: 'row'}}>
             <Text style={styles.texto}>Coleta de dados em segundos:</Text>
-            <Picker
-              selectedValue={intervalo}
-              onValueChange={(itemValue, itemIndex) => setInvervalo(itemValue)}
-              style={styles.picker}>
-              <Picker.Item label="0" value={0} key={0} />
-              <Picker.Item label="1" value={1} key={1} />
-              <Picker.Item label="2" value={2} key={2} />
-              <Picker.Item label="3" value={3} key={3} />
-              <Picker.Item label="4" value={4} key={4} />
-              <Picker.Item label="5" value={5} key={5} />
-              <Picker.Item label="10" value={10} key={10} />
-              <Picker.Item label="15" value={15} key={15} />
-              <Picker.Item label="20" value={20} key={20} />
-              <Picker.Item label="25" value={25} key={25} />
-              <Picker.Item label="30" value={30} key={30} />
-              <Picker.Item label="60" value={60} key={60} />
-            </Picker>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={text => setInvervaloColeta(text)}
+              value={intervaloColeta}
+              keyboardType="numeric"
+            />
           </View>
         </View>
 
         <View style={styles.boxContainer}>
-          <Text style={styles.texto2}>Altura ideal: {alturaIdeal} M </Text>
-          <Text style={styles.texto2}>Temp. ideal: {temperaturaIdeal} °C</Text>
-          <Text style={styles.texto2}>Umi. do Ar ideal: {umidadeIdeal} %</Text>
+          <Text style={styles.texto2}>Altura ideal: {alturaIdeal}M </Text>
+          <Text style={styles.texto2}>
+            Temperatura ideal: {temperaturaIdeal}°C
+          </Text>
+          <Text style={styles.texto2}>
+            Umidade do Ar ideal: {umidadeIdeal}%
+          </Text>
         </View>
 
         {enable && (
-          <BluetoothRead amostra={amostraSelecionada} intervalo={intervalo} />
+          <BluetoothRead
+            amostra={idAmostraSelecionada}
+            intervalo={intervaloColeta}
+          />
         )}
       </ScrollView>
 
@@ -125,11 +135,17 @@ export default function Home() {
           marginHorizontal: '3%',
           marginBottom: '1%',
         }}>
-        <TouchableOpacity style={styles.button} onPress={handleRead}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleRead}
+          disabled={buttonsDisabled}>
           <Text style={styles.textButton}>Iniciar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleStopRead}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleStopRead}
+          disabled={buttonsDisabled}>
           <Text style={styles.textButton}>Parar</Text>
         </TouchableOpacity>
       </View>
@@ -211,5 +227,11 @@ const styles = StyleSheet.create({
     width: '100%',
     color: 'black',
     fontWeight: 'bold',
+  },
+  textInput: {
+    backgroundColor: 'white',
+    width: 100,
+    height: 40,
+    borderRadius: 10,
   },
 });

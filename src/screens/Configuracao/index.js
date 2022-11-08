@@ -6,7 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  ScrollView,
+  Alert,
 } from 'react-native';
 
 import {useAsyncStorage} from '@react-native-async-storage/async-storage';
@@ -26,21 +26,31 @@ export default function Configuracao() {
   );
 
   async function handleData() {
-    const response = await getItem();
+    try {
+      const response = await getItem();
 
-    const responseData = response ? JSON.parse(response) : [];
+      const responseData = response ? JSON.parse(response) : [];
 
-    setData(responseData);
+      setData(responseData);
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Ops...', 'Parece que algo deu errado, tente novamente!');
+    }
   }
 
   async function handleRemove(id) {
-    const response = await getItem();
-    const previousData = response ? JSON.parse(response) : [];
+    try {
+      const response = await getItem();
+      const previousData = response ? JSON.parse(response) : [];
 
-    const data = previousData.filter(item => item.id !== id);
+      const data = previousData.filter(item => item.id !== id);
 
-    setItem(JSON.stringify(data));
-    setData(data);
+      setItem(JSON.stringify(data));
+      setData(data);
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Ops...', 'Parece que algo deu errado, tente novamente!');
+    }
   }
 
   return (
@@ -60,10 +70,7 @@ export default function Configuracao() {
           style={styles.lista}
           renderItem={({item}) => (
             <View style={styles.boxButtonLista}>
-              <TouchableOpacity style={styles.buttonLista}>
-                <Text style={styles.textoLista}> {item.amostra} </Text>
-              </TouchableOpacity>
-
+              <Text style={styles.textoLista}> {item.amostra} </Text>
               <TouchableOpacity
                 style={styles.buttonRemove}
                 onPress={() => handleRemove(item.id)}>
@@ -113,15 +120,12 @@ const styles = StyleSheet.create({
     color: 'black',
     fontWeight: 'bold',
     height: 50,
-    marginTop: 10,
     marginLeft: 10,
-  },
-  buttonLista: {
     backgroundColor: 'white',
-    marginTop: '3%',
     borderRadius: 10,
     width: '100%',
-    marginBottom: '5%',
+    paddingTop: '3%',
+    paddingLeft: '3%',
   },
   button: {
     backgroundColor: 'green',
@@ -139,23 +143,17 @@ const styles = StyleSheet.create({
   boxButtonLista: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'space-between',
+    marginBottom: '10%',
   },
-
   buttonRemove: {
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
     position: 'absolute',
     marginLeft: '85%',
-  },
-  buttonTeste: {
-    alignItems: 'center',
-    backgroundColor: 'green',
-    justifyContent: 'center',
-    borderRadius: 10,
-    height: 40,
-    width: '42%',
-    marginTop: '2%',
+    height: 50,
+    paddingTop: '3%',
+    paddingLeft: '3%',
   },
 });

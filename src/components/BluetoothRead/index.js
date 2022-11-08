@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Alert} from 'react-native';
 
 import Bluetooth from 'react-native-bluetooth-serial-next';
 import AsyncStorate from '@react-native-async-storage/async-storage';
@@ -16,53 +16,44 @@ export default function BluetoothRead(props) {
   useEffect(() => {
     Bluetooth.readEvery(
       async (data, intervalId) => {
-        const resp = await AsyncStorate.getItem('@savePulverizador:data');
-        const respData = resp ? JSON.parse(resp) : [];
+        try {
+          const resp = await AsyncStorate.getItem(
+            `@savePulverizador:dataIdAmostra${props.amostra}`,
+          );
+          const respData = resp ? JSON.parse(resp) : [];
 
-        const dataString = data.replace(/@/g, '"');
+          const dataString = data.replace(/@/g, '"');
 
-        const newDatas = await JSON.parse(dataString);
+          const newDatas = await JSON.parse(dataString);
 
-        setAlturaSensor1(newDatas.Distancia);
-        setTemperaturaSensor(newDatas.Temperatura);
-        setUmidadeSensor(newDatas.Umidade);
-        console.log(newDatas);
+          const newDatasSave = {
+            idAmostra: Number(props.amostra),
+            Distancia: newDatas.Distancia,
+            Temperatura: newDatas.Temperatura,
+            Umidade: newDatas.Umidade,
+          };
 
-        interval = intervalId;
+          setAlturaSensor1(newDatas.Distancia);
+          setTemperaturaSensor(newDatas.Temperatura);
+          setUmidadeSensor(newDatas.Umidade);
+          console.log('id: ' + props.id);
+          console.log('coleta de tempo: ' + props.intervalo);
+          console.log(newDatasSave);
 
-        const datas = [...respData, newDatas];
+          interval = intervalId;
 
-        await AsyncStorate.setItem(
-          '@savePulverizador:data',
-          JSON.stringify(datas),
-        );
+          const datas = [...respData, newDatasSave];
 
-        /*   const response = await getItem();
-  
-        const responseData = response ? JSON.parse(response) : [];
-  
-        const lastId = responseData.length - 1;
-  
-        const id = lastId + 1;
-  
-        
-  
-        const data = [...responseData, newData];*/
-
-        /*   if (stop) {
-          console.log('pausa');
-          setEfeito(true);
-        }*/
-
-        /* const newData = {
-            id,
-            amostra,
-            altura,
-            temperatura,
-            umidade,
-          };*/
+          await AsyncStorate.setItem(
+            `@savePulverizador:dataIdAmostra${props.amostra}`,
+            JSON.stringify(datas),
+          );
+        } catch (error) {
+          console.log(error);
+          Alert.alert('problema');
+        }
       },
-      5000,
+      Number(props.intervalo),
       '\r\n',
     );
 
