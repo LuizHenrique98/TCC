@@ -9,7 +9,7 @@ import Configuracao from '../screens/Configuracao';
 import CadastroAmostra from '../screens/CadastroAmostra';
 import ExportarCSV from '../screens/ExportarCsv';
 
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,7 +38,7 @@ function Routes() {
             headerRight: () => (
               <TouchableOpacity
                 onPress={() => navigation.navigate('Configuracoes')}>
-                <Icon name="options" size={25} style={{color: 'white'}} />
+                <Icon name="plus-circle" size={30} style={{color: 'white'}} />
               </TouchableOpacity>
             ),
           }}
@@ -50,7 +50,7 @@ function Routes() {
           options={{
             headerTintColor: 'white',
             headerStyle: {backgroundColor: 'green'},
-            title: 'Configurações',
+            title: 'Lista',
           }}
         />
 

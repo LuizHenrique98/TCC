@@ -17,6 +17,7 @@ export default function BluetoothRead(props) {
     Bluetooth.readEvery(
       async (data, intervalId) => {
         try {
+          let newDatas;
           const resp = await AsyncStorate.getItem(
             `@savePulverizador:dataIdAmostra${props.amostra}`,
           );
@@ -24,20 +25,36 @@ export default function BluetoothRead(props) {
 
           const dataString = data.replace(/@/g, '"');
 
-          const newDatas = await JSON.parse(dataString);
+          try {
+            newDatas = await JSON.parse(dataString);
+          } catch (error) {
+            clearInterval(intervalId);
+            Alert.alert(
+              'ERRO',
+              'Houve um erro nos dados, verifique a conexão!',
+            );
+            return;
+          }
 
           const newDatasSave = {
             idAmostra: Number(props.amostra),
-            Distancia: newDatas.Distancia,
-            Temperatura: newDatas.Temperatura,
-            Umidade: newDatas.Umidade,
+            DescAmostra: props.descAmostra,
+            AlturaIdeal: props.alturaIdeal,
+            TemperaturaIdeal: props.temperaturaIdeal,
+            UmidadeIdeal: props.umidadeIdeal,
+            AlturaSensor1: newDatas.AlturaSensor1,
+            AlturaSensor2: newDatas.AlturaSensor2,
+            AlturaSensor3: newDatas.AlturaSensor3,
+            TemperaturaSensor: newDatas.Temperatura,
+            UmidadeSensor: newDatas.Umidade,
           };
 
-          setAlturaSensor1(newDatas.Distancia);
+          setAlturaSensor1(newDatas.AlturaSensor1);
+          setAlturaSensor2(newDatas.AlturaSensor2);
+          setAlturaSensor3(newDatas.AlturaSensor3);
           setTemperaturaSensor(newDatas.Temperatura);
           setUmidadeSensor(newDatas.Umidade);
-          console.log('id: ' + props.id);
-          console.log('coleta de tempo: ' + props.intervalo);
+
           console.log(newDatasSave);
 
           interval = intervalId;

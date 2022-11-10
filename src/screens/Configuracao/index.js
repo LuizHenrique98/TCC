@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: '10%',
+    marginBottom: '3%',
   },
   buttonRemove: {
     justifyContent: 'center',

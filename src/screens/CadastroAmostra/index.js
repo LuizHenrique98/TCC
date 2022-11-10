@@ -11,19 +11,20 @@ import {
 } from 'react-native';
 
 import AsyncStorate from '@react-native-async-storage/async-storage';
+import MaskInput, {createNumberMask, Masks} from 'react-native-mask-input';
+
+const numberMask = createNumberMask({
+  prefix: [],
+  delimiter: '',
+  separator: '.',
+  precision: 2,
+});
 
 export default function CadastroAmostra() {
   const [amostra, setAmostra] = useState('');
-  const [altura, setAltura] = useState(0);
-  const [temperatura, setTemperatura] = useState(0);
-  const [umidade, setUmidade] = useState(0);
-
-  useEffect(() => {
-    Alert.alert(
-      'Atenção!',
-      'Separar números decimais com ponto. Exemplo: (30.15)',
-    );
-  }, []);
+  const [altura, setAltura] = useState();
+  const [temperatura, setTemperatura] = useState();
+  const [umidade, setUmidade] = useState();
 
   async function handleSalvar() {
     if (
@@ -82,9 +83,9 @@ export default function CadastroAmostra() {
         Alert.alert('Mensagem', 'Dados gravados com sucesso!');
 
         setAmostra('');
-        setAltura(0);
-        setTemperatura(0);
-        setUmidade(0);
+        setAltura('');
+        setTemperatura('');
+        setUmidade('');
       } catch (error) {
         console.log(error);
         Alert.alert('Ops...', 'Não foi possível cadastrar. Tente novamente');
@@ -96,32 +97,35 @@ export default function CadastroAmostra() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.boxCadastro}>
-          <Text style={styles.texto}>Amostra</Text>
+          <Text style={styles.texto}>Descrição da amostra</Text>
           <TextInput
             style={styles.textInput}
             onChangeText={text => setAmostra(text)}
             value={amostra}
           />
           <Text style={styles.texto}>Altura ideal (M)</Text>
-          <TextInput
+          <MaskInput
+            mask={numberMask}
             style={styles.textInput}
-            onChangeText={text => setAltura(text)}
+            onChangeText={(masked, unMasked) => setAltura(masked)}
             value={altura}
-            keyboardType="phone-pad"
+            keyboardType="numeric"
           />
           <Text style={styles.texto}>Temperatura máxima recomendada (°C)</Text>
-          <TextInput
+          <MaskInput
+            mask={numberMask}
             style={styles.textInput}
-            onChangeText={text => setTemperatura(text)}
+            onChangeText={(masked, unMasked) => setTemperatura(masked)}
             value={temperatura}
-            keyboardType="phone-pad"
+            keyboardType="numeric"
           />
           <Text style={styles.texto}>Umidade máxima recomendada (%)</Text>
-          <TextInput
+          <MaskInput
             style={styles.textInput}
-            onChangeText={text => setUmidade(text)}
+            mask={numberMask}
+            onChangeText={(masked, unMasked) => setUmidade(masked)}
             value={umidade}
-            keyboardType="phone-pad"
+            keyboardType="numeric"
           />
         </View>
       </ScrollView>
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   boxCadastro: {
-    margin: '3%',
+    margin: '2%',
     padding: '5%',
     backgroundColor: '#C0C0C0',
     borderRadius: 10,
@@ -153,7 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   button: {
-    margin: '5%',
+    margin: '3%',
     backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',

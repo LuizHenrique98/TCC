@@ -1,25 +1,27 @@
 import React, {useEffect, useState} from 'react';
 import {
-  SafeAreaView,
   View,
-  TouchableOpacity,
   Text,
-  StyleSheet,
-  PermissionsAndroid,
-  FlatList,
   Alert,
+  FlatList,
+  StyleSheet,
   ToastAndroid,
+  SafeAreaView,
+  TouchableOpacity,
+  PermissionsAndroid,
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Feather';
-
 import Bluetooth from 'react-native-bluetooth-serial-next';
+import LoadingModal from '../../components/LoadingModal';
 
 export default function Conection() {
   const navigation = useNavigation();
 
   const [listaDevicesPareados, setListaDevicesPareados] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [deviceIdconnected, setDeviceIdconnected] = useState('');
 
   useEffect(() => {
     async function init() {
@@ -41,7 +43,7 @@ export default function Conection() {
     init();
   }, []);
 
-  async function handleProcurarDispositivos() {
+  async function handleListarDispositivos() {
     try {
       var granted;
       PermissionsAndroid.check(
@@ -73,8 +75,31 @@ export default function Conection() {
 
   async function handleConectar(deviceId) {
     try {
-      await Bluetooth.connect(deviceId);
+      await Bluetooth.requestEnable();
+      const enabled = await Bluetooth.isEnabled();
+      const deviceConnected = await Bluetooth.isConnected();
 
+      console.log('Enabled: ' + enabled + ' Conectado: ' + deviceConnected);
+
+      if (enabled && deviceConnected) {
+        if (deviceId != deviceIdconnected) {
+          Alert.alert(
+            'Atenção!',
+            'Clique no dispositivo já conectado para avançar',
+          );
+          return;
+        }
+
+        Alert.alert('Informação', 'Dispositivo já conectado.');
+        setConnected(true);
+        setDeviceIdconnected(deviceId);
+        navigation.navigate('Home');
+        return;
+      }
+
+      setLoading(true);
+      await Bluetooth.connect(deviceId);
+      console.log('tá cehgnado aqui ');
       const conectado = await Bluetooth.isConnected();
 
       if (conectado) {
@@ -83,53 +108,65 @@ export default function Conection() {
           ToastAndroid.SHORT,
           ToastAndroid.TOP,
         );
+        setConnected(true);
+        setDeviceIdconnected(deviceId);
+        setLoading(false);
+
         navigation.navigate('Home');
       }
     } catch (error) {
       console.log(error);
+      setLoading(false);
+      setConnected(false);
+      setDeviceIdconnected('');
       Alert.alert('Ops... Algo deu errado ao se conectar com o dispositivo');
+    }
+  }
+
+  async function handleDesconectar() {
+    try {
+      Alert.alert('Alerta!', 'Dispositivo desconectado');
+      await Bluetooth.disconnectAll();
+      setConnected(false);
+      setDeviceIdconnected('');
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Ops...', 'Algo deu errado ao tentar desconectar.');
     }
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Lista de dispositivos pareados</Text>
-        <TouchableOpacity onPress={handleProcurarDispositivos}>
-          <Icon
-            name="refresh-ccw"
-            size={20}
-            color={'black'}
-            style={styles.emoji}
-          />
+        <TouchableOpacity
+          disabled={connected}
+          style={[styles.button, connected && {backgroundColor: 'grey'}]}
+          onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.textButton}>Avançar sem conectar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleListarDispositivos}>
+          <Text style={styles.textButton}> Listar dispositivos pareados </Text>
         </TouchableOpacity>
       </View>
 
-      <Text
-        style={{
-          marginTop: '3%',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'black',
-        }}>
-        Clique no botão para exibir {'\n'} os dispositivos pareados
-      </Text>
-
-      <TouchableOpacity
-        style={styles.buttonAvanar}
-        onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.textoButton}>Avançar sem conectar</Text>
-      </TouchableOpacity>
-
       {listaDevicesPareados.length > 0 && (
         <FlatList
-          style={styles.lista}
+          style={styles.listDevices}
           data={listaDevicesPareados}
           keyExtractor={device => device.id}
           renderItem={({item}) => {
             return (
               <TouchableOpacity
-                style={styles.buttonLista}
+                style={[
+                  styles.buttonList,
+                  connected &&
+                    deviceIdconnected == item.id && {
+                      backgroundColor: '#90ee90',
+                    },
+                ]}
+                onLongPress={handleDesconectar}
                 onPress={() => handleConectar(item.id)}>
                 <Text style={styles.textoLista}>{item.name}</Text>
               </TouchableOpacity>
@@ -137,6 +174,7 @@ export default function Conection() {
           }}
         />
       )}
+      {loading && <LoadingModal text="Conectando" />}
     </SafeAreaView>
   );
 }
@@ -147,69 +185,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: '3%',
-  },
-  title: {
-    fontSize: 20,
-    color: 'black',
-    fontWeight: 'bold',
-  },
-  emoji: {
-    fontSize: 25,
-    color: 'green',
-    marginLeft: 15,
   },
   button: {
     backgroundColor: 'green',
-    height: 20,
-    width: 100,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 50,
-    marginTop: 100,
-    marginLeft: 150,
+    marginVertical: '3%',
+    width: 300,
+    height: 40,
   },
-  text: {
-    fontSize: 15,
-    color: 'black',
+  textButton: {
+    fontSize: 20,
+    color: 'white',
   },
-  lista: {
+  listDevices: {
     width: '90%',
     backgroundColor: '#C0C0C0',
     borderRadius: 6,
-    marginTop: '3%',
-    marginBottom: '5%',
+    marginTop: '1%',
+    marginBottom: '3%',
     padding: '2%',
+  },
+  buttonList: {
+    backgroundColor: 'white',
+    marginVertical: '2%',
+    marginHorizontal: '2%',
+    borderRadius: 10,
+    marginBottom: '1%',
   },
   textoLista: {
     fontSize: 20,
     color: 'black',
     fontWeight: 'bold',
     height: 50,
-    marginTop: '5%',
-    marginLeft: '5%',
-  },
-  buttonLista: {
-    backgroundColor: 'white',
-    marginVertical: '4%',
-    marginHorizontal: '2%',
-    borderRadius: 10,
-    justifyContent: 'center',
-  },
-  buttonAvanar: {
-    backgroundColor: 'green',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 50,
-    marginVertical: '2%',
-    width: '50%',
-    height: 30,
-  },
-  textoButton: {
-    fontSize: 15,
-    color: 'white',
+    padding: '3%',
   },
 });
