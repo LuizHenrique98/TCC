@@ -204,7 +204,9 @@ export default function Home() {
           marginHorizontal: '3%',
           marginBottom: '3%',
         }}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={[styles.button, {backgroundColor: 'grey'}]}
+          disabled={true}>
           <Text style={styles.textButton}>Gráfico</Text>
         </TouchableOpacity>
         <TouchableOpacity

@@ -70,21 +70,8 @@ export default function ExportarCSV() {
 
       const data = await responseData.filter(item => item.idAmostra == id);
 
-      const dataCadastro = await AsyncStorate.getItem(
-        '@savePulverizador:amostra',
-      );
-      const dataCadastroResponse = dataCadastro
-        ? await JSON.parse(dataCadastro)
-        : [];
-
-      const dataCadastroFiltro = dataCadastroResponse.filter(
-        item => item.id == id,
-      );
-
-      const dataSave = [...data, ...dataCadastroFiltro];
-
-      const results = jsonToCSV(dataSave);
-      console.log(dataSave);
+      const results = jsonToCSV(data);
+      console.log(results);
 
       var path =
         RNFS.DownloadDirectoryPath + `DadosAmostra_${id}_${amostra}.csv`;
